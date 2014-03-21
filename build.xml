@@ -1,0 +1,102 @@
+<project name='com.zeomega.helloworld' default='build' basedir='.'>
+
+  <property name="version-number" value="0.1" />
+
+  <!-- Pull in build number from Jenkins CI Engine so we can place in MANIFEST -->
+  <property environment="env" />
+  <property name="build_number" value="${env.BUILD_NUMBER}" />
+
+  <tstamp prefix="build-info">
+    <format property="current-date" pattern="yyyy-MM-dd" locale="en" />
+    <format property="current-time" pattern="hh:mm:ss a z" locale="en" />
+    <format property="year-month-day" pattern="yyyy-MM-dd" locale="en" />
+  </tstamp>
+
+
+  <target name='init'>
+    <property file='${user.home}/build.properties' />
+    <property name='app.name' value='${ant.project.name}' />
+    <property name='src.dir' location='src' />
+    <property name='lib.dir' location='WebContent/WEB-INF/lib' />
+    <property name='build.dir' location='build' />
+    <property name='classes.dir' location='${build.dir}/classes' />
+    <property name='dist.dir' location='${build.dir}/dist' />
+  </target>
+
+
+
+  <target name='initdirs' depends='init'>
+    <mkdir dir='${classes.dir}' />
+    <mkdir dir='${dist.dir}' />
+  </target>
+
+  <target name='compile' depends='initdirs'>
+    <!--javac srcdir='${src.dir}/java' destdir='${classes.dir}' -->
+    <javac srcdir='${src.dir}' destdir='${classes.dir}'>
+      <exclude name="**/Test**.java" />
+      <classpath>
+        <fileset dir='${lib.dir}' includes='activation-1.1.1.jar' />
+        <fileset dir='${lib.dir}' includes='asm-3.1.jar' />
+        <fileset dir='${lib.dir}' includes='jackson-core-asl-1.9.2.jar' />
+        <fileset dir='${lib.dir}' includes='jackson-jaxrs-1.9.2.jar' />
+        <fileset dir='${lib.dir}' includes='jackson-mapper-asl-1.9.2.jar' />
+        <fileset dir='${lib.dir}' includes='jackson-xc-1.9.2.jar' />
+        <fileset dir='${lib.dir}' includes='jaxb-api-2.2.4' />
+        <fileset dir='${lib.dir}' includes='jaxb-impl-2.2.4-1.jar' />
+        <fileset dir='${lib.dir}' includes='jersey-client-1.13.jar' />
+        <fileset dir='${lib.dir}' includes='jersey-core-1.13.jar' />
+        <fileset dir='${lib.dir}' includes='jersey-json-1.13.jar' />
+        <fileset dir='${lib.dir}' includes='jersey-server-1.13.jar' />
+        <fileset dir='${lib.dir}' includes='jersey-servlet-1.13.jar' />
+        <fileset dir='${lib.dir}' includes='jettison-1.1.jar' />
+        <fileset dir='${lib.dir}' includes='jsr311-api-1.1.1.jar' />
+        <fileset dir='${lib.dir}' includes='prince.jar' />
+        <fileset dir='${lib.dir}' includes='servlet-api.jar' />
+        <fileset dir='${lib.dir}' includes='stax-api-1.0-2.jar' />
+        <fileset dir='${lib.dir}' includes='rabbitmq-client.jar' />
+        <fileset dir='${lib.dir}' includes='log4j-1.2.17.jar' />
+      </classpath>
+    </javac>
+    <copy todir="${classes.dir}">
+      <fileset dir="src">
+        <include name="**/*.properties" />
+        <include name="**/*.xml" />
+        <include name="**/*.xsd" />
+      </fileset>
+    </copy>
+
+  </target>
+
+  <target name='war' depends='compile'>
+    <war destFile='${dist.dir}/${app.name}-${version-number}.war' webxml='WebContent/WEB-INF/web.xml'>
+      <classes dir='${classes.dir}' />
+      <zipfileset dir='${lib.dir}' prefix='WEB-INF/lib' />
+      <manifest>
+        <attribute name="Built-By" value="${user.name}" />
+        <attribute name="Build-Date" value="${build-info.current-date}" />
+        <attribute name="Built-Time" value="${build-info.current-time}" />
+        <attribute name="Build-Number" value="${env.BUILD_NUMBER}" />
+        <attribute name="Git-Branch" value="${env.GIT_BRANCH}" />
+        <attribute name="Git-Commit" value="${env.GIT_COMMIT}" />
+        <attribute name="Implementation-Version" value="${version-number}" />
+      </manifest>
+    </war>
+  </target>
+
+  <target name='build' depends='war' description='compile and create the war' />
+
+  <target name='clean' depends='init' description='Use for a clean build'>
+    <delete dir='${build.dir}' />
+  </target>
+
+  <target name='cleanbuild' depends='clean, build' description='clean and create the war' />
+
+  <target name='deploy' depends='initdirs' description='copy the war file to the app server'>
+    <delete verbose='true' dir='${deploy.dir}/${app.name}' />
+    <delete verbose='true' dir='${deploy.dir}/../application-deployments/default/${app.name}' />
+    <delete verbose='true' file='${deploy.dir}/${app.name}.war' />
+    <fail unless='deploy.dir' message='build.properties must exist in your home directory and define deploy.dir' />
+    <copy todir='${deploy.dir}' file='${dist.dir}/${app.name}.war' />
+  </target>
+
+</project>

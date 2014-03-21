@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>com.zeomega.helloworld</display-name>
+  <servlet>
+    <servlet-name>standard-real-time</servlet-name>
+    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+    <init-param>
+      <param-name>com.sun.jersey.config.property.packages</param-name>
+      <param-value>com.zeomega.helloworld</param-value>
+    </init-param>
+  </servlet>
+  <servlet>
+    <servlet-name>Log4JInitServlet</servlet-name>
+    <servlet-class>com.zeomega.helloworld.Log4jInit</servlet-class>
+		<init-param>
+			<param-name>log4j-properties-location</param-name>
+			<param-value>log4j.properties</param-value>
+		</init-param>
+		    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>standard-real-time</servlet-name>
+    <url-pattern>/restful/*</url-pattern>
+  </servlet-mapping>
+</web-app>
